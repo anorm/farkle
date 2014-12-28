@@ -15,15 +15,20 @@ class Dice:
 class Turn:
     def __init__(self):
         self.dice = [Dice() for x in xrange(6)]
+        self.result = None
+        self.score = 0
 
     def take(self):
         if len(self.dice) == 0:
+            self.result = False
             return False
         for d in self.dice:
             d.roll()
         self.dice = sorted(self.dice, key=lambda x: x.value)
         if Game.valueOf(self.dice) == 0:
+            self.result = False
             return False
+        self.result = True
         return True
 
 class Game:
@@ -40,9 +45,17 @@ class Game:
         while max(player.score for player in self.players) < 10000:
             for player in self.players:
                 turn = Turn()
-                player.takeTurn(turn)
+                lockedDice = player.takeTurn(turn)
                 
-                player.score += 1000
+                if not turn.result:
+                    print("Player {0} striked out".format(player))
+                    continue
+                
+                value = Game.valueOf(lockedDice)
+                if value == 0:
+                    print("Player {0} didn't lock any dice".format(player))
+                
+                turn.score += value
 
     @staticmethod
     def valueOf(diceList):
@@ -78,6 +91,8 @@ class AIPlayer:
         print("  Got:       {0}".format(turn.dice))
         print("  Result:    {0}".format(result))
         print("  Value:     {0}".format(Game.valueOf(turn.dice)))
+        
+        return []
         
 
 game = Game()
